@@ -1,0 +1,56 @@
+video:
+  sample_fps: 3.0
+
+roi:
+  x: 0.0
+  y: 0.0
+  width: 1.0
+  height: 1.0
+  ignore: []
+
+# Example ignore rectangles use full-frame normalized coordinates.
+# roi:
+#   x: 0.05
+#   y: 0.05
+#   width: 0.75
+#   height: 0.85
+#   ignore:
+#     - [0.00, 0.90, 1.00, 0.10]
+#     - [0.85, 0.00, 0.15, 0.15]
+
+detection:
+  resize_width: 640
+  gaussian_kernel: 5
+  threshold_high: 0.030
+  threshold_low: 0.010
+  reference_threshold: 0.025
+  stable_seconds: 1.5
+  merge_threshold: 0.018
+  min_slide_seconds: 1.0
+  pixel_weight: 0.80
+  edge_weight: 0.20
+  canny_low: 60
+  canny_high: 160
+  png_compression: 3
+
+whisper:
+  enabled: true
+  model: large-v3
+  language: ja
+  device: cuda
+  compute_type: float16
+  beam_size: 5
+  vad_filter: true
+  word_timestamps: false
+  condition_on_previous_text: true
+
+output:
+  format: pptx
+  image_region: roi
+  keep_intermediate: true
+  save_debug_scores: true
+  slide_width_in: 13.333333
+  slide_height_in: 7.5
+  pdf_transcript_mode: below
+  pdf_transcript_ratio: 0.22
+  pdf_font_path: null

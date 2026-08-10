@@ -1,0 +1,20 @@
+from pathlib import Path
+
+from mp4slides.config import load_config
+
+
+def test_default_config_is_valid() -> None:
+    config = load_config()
+    assert config.video.sample_fps == 3.0
+    assert config.whisper.language == "ja"
+
+
+def test_yaml_config(tmp_path: Path) -> None:
+    path = tmp_path / "config.yaml"
+    path.write_text(
+        "video:\n  sample_fps: 2.0\nroi:\n  x: 0.1\n  y: 0.2\n  width: 0.8\n  height: 0.7\n",
+        encoding="utf-8",
+    )
+    config = load_config(path)
+    assert config.video.sample_fps == 2.0
+    assert config.roi.rect.x == 0.1

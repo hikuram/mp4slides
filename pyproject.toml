@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=75", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mp4slides"
+version = "0.1.0"
+description = "Build PPTX/PDF slide documents from presentation videos."
+requires-python = ">=3.10"
+dependencies = []
+
+[project.scripts]
+mp4slides = "mp4slides.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
