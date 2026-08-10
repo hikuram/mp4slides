@@ -1,13 +1,30 @@
 [build-system]
-requires = ["setuptools>=75", "wheel"]
+requires = ["setuptools>=77.0.3", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "mp4slides"
 version = "0.1.0"
 description = "Build PPTX/PDF slide documents from presentation videos."
+readme = "README.md"
 requires-python = ">=3.10"
-dependencies = []
+license = "MIT"
+license-files = ["LICENSE", "THIRD_PARTY_NOTICES.md"]
+dependencies = [
+    "faster-whisper==1.2.1",
+    "opencv-python-headless==5.0.0.93",
+    "numpy==2.2.6",
+    "python-pptx==1.0.2",
+    "PyYAML==6.0.3",
+    "Pillow==12.3.0",
+    "reportlab==5.0.0",
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Operating System :: POSIX :: Linux",
+    "Topic :: Multimedia :: Video",
+]
 
 [project.scripts]
 mp4slides = "mp4slides.cli:main"

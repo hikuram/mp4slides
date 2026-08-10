@@ -176,3 +176,21 @@ python -m pip install -r requirements-dev.txt
 python -m pip install --no-deps -e .
 pytest -q
 ```
+
+## License
+
+The source code authored for this repository is licensed under the MIT License.
+See [`LICENSE`](LICENSE).
+
+Third-party software used by the project keeps its own license. This repository
+does **not** distribute prebuilt Docker images, FFmpeg/CUDA binaries, Python
+dependency wheels, or speech-recognition model weights. The `Dockerfile` is a
+build recipe; dependencies installed while building it are not relicensed under
+MIT.
+
+See [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md) for the dependency and
+runtime licensing notes.
+
+If you redistribute a built container image or other bundled environment, perform
+a separate license review for the exact FFmpeg, CUDA, Ubuntu, Python-package, and
+model artifacts included in that distribution.
