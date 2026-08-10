@@ -5,7 +5,7 @@ from pptx import Presentation
 
 from mp4slides.config import OutputConfig
 from mp4slides.models import DetectedSlide
-from mp4slides.pdf_writer import write_pdf
+from mp4slides.pdf_writer import _fit_or_paginate_text, _register_font, write_pdf
 from mp4slides.pptx_writer import write_pptx
 
 
@@ -46,3 +46,19 @@ def test_pdf_writes_japanese_transcript(tmp_path: Path) -> None:
     write_pdf([make_slide(image_path)], output, OutputConfig(format="pdf"))
     assert output.exists()
     assert output.stat().st_size > 1000
+
+
+def test_side_by_side_pdf_keeps_all_text_across_pages() -> None:
+    config = OutputConfig(format="pdf", pdf_transcript_mode="side-by-side")
+    font_name = _register_font(config)
+    text = "あ" * 5000
+    _, _, pages = _fit_or_paginate_text(
+        text,
+        font_name,
+        config.pdf_font_size,
+        config.pdf_min_font_size,
+        width=120.0,
+        height=120.0,
+    )
+    assert len(pages) > 1
+    assert "".join(line for page in pages for line in page) == text

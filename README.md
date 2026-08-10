@@ -60,7 +60,17 @@ mp4slides /input/presentation.mp4 \
 
 `--ignore`は複数指定できます。字幕、時計、発表者カメラなどの更新領域を除外する用途です。
 
-`--image-region roi`が既定なので、資料にはROIを切り出した画像が入ります。解析だけROIにして出力画像を動画全体にしたい場合は`--image-region full`を使います。
+`--image-region roi`が既定なので、通常は解析ROIを切り出した画像が資料に入ります。
+
+解析範囲と出力画像の範囲を分けたい場合は`--capture-roi`を使います。`--capture-roi`はページ判定には影響しません。
+
+```bash
+mp4slides /input/presentation.mp4 \
+  --roi 0.10,0.10,0.70,0.75 \
+  --capture-roi 0.03,0.03,0.94,0.90
+```
+
+解析だけROIにして出力画像を動画全体にしたい場合は`--image-region full`を使います。この場合`--capture-roi`は無視されます。
 
 ## YAML設定
 
@@ -103,19 +113,61 @@ transcript text...
 
 ### PDF
 
-PPTXから変換せず、ReportLabで直接生成します。
+PPTXから変換せず、ReportLabで直接生成します。既定は`side-by-side`で、**左にスライド画像、右にそのスライド区間の全文文字起こし**を配置します。
 
+- `side-by-side`: 左にスライド、右に全文文字起こし（既定）
 - `below`: スライド画像の下に文字起こしを表示
 - `notes-page`: スライドページの次に文字起こしページを追加
 - `none`: スライド画像のみ
 
+右欄に入り切らない場合は、まず`pdf_min_font_size`まで自動縮小し、それでも入り切らなければ同じスライド画像を左に再掲した継続ページを生成します。文字起こしは省略しません。
+
 ```bash
 mp4slides /input/presentation.mp4 \
   --format pdf \
-  --pdf-transcript-mode notes-page
+  --pdf-transcript-mode side-by-side \
+  --pdf-transcript-ratio 0.42 \
+  --pdf-font-size 10 \
+  --pdf-min-font-size 8
 ```
 
+`pdf_transcript_ratio`は`side-by-side`では右側文字起こし欄の幅比率です。`pdf_margin_pt`、`pdf_gap_pt`、`pdf_page_width_in`、`pdf_page_height_in`もYAMLまたはCLIから調整できます。
+
 日本語PDFはReportLabの日本語CIDフォントを既定で使用します。TrueTypeフォントを埋め込みたい場合は`output.pdf_font_path`でTTFファイルを指定できます。
+
+## 再実行: ページ分けと文字起こしを保持して見た目だけ変更
+
+初回実行で生成した`presentation.segments.json`には、各ページの`start`、`end`、`representative_time`、`transcript`が保存されています。
+
+`--reuse-segments`を指定すると、**スライド検出とWhisperを実行せず**、そのJSONのページ境界・代表時刻・文字起こしを確定値として再利用します。元MP4から代表フレームだけ再取得するため、キャプチャ範囲やPDFレイアウトを低コストで何度でも変更できます。
+
+```bash
+mp4slides /input/presentation.mp4 \
+  --reuse-segments /output/presentation.segments.json \
+  --capture-roi 0.04,0.06,0.92,0.86 \
+  --format both \
+  --pdf-transcript-mode side-by-side \
+  --pdf-transcript-ratio 0.45
+```
+
+この再実行では次を保持します。
+
+- ページ数とページ境界 (`start` / `end`)
+- 代表フレーム時刻 (`representative_time`)
+- ページごとの文字起こし (`transcript`)
+- `merged_count`などの既存メタデータ
+
+一方、次は変更できます。
+
+- `--capture-roi`: 出力画像の切り出し範囲
+- `--image-region`: ROI画像か全画面か
+- PPTX/PDFの出力有無
+- PDFの左右比率、フォントサイズ、余白、カラム間隔、ページサイズ
+- PPTXのスライドサイズ
+
+`segments.json`自体をテキストエディタで修正してから再利用することもできます。例えば誤検出した境界を直したり、`representative_time`を変更して別のフレームを採用したり、文字起こしを校正した後、その内容を固定したまま再レンダリングできます。
+
+初回の解析ROIそのものを変えて**ページ分けも再判定**したい場合は、`--reuse-segments`を外して通常実行してください。
 
 ## GPUなしで確認
 

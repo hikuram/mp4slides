@@ -54,13 +54,20 @@ class WhisperConfig:
 class OutputConfig:
     format: str = "pptx"
     image_region: str = "roi"
+    capture_roi: Rect | None = None
     keep_intermediate: bool = True
     save_debug_scores: bool = True
     slide_width_in: float = 13.333333
     slide_height_in: float = 7.5
-    pdf_transcript_mode: str = "below"
-    pdf_transcript_ratio: float = 0.22
+    pdf_transcript_mode: str = "side-by-side"
+    pdf_transcript_ratio: float = 0.40
     pdf_font_path: str | None = None
+    pdf_font_size: float = 10.0
+    pdf_min_font_size: float = 8.0
+    pdf_margin_pt: float = 18.0
+    pdf_gap_pt: float = 18.0
+    pdf_page_width_in: float | None = None
+    pdf_page_height_in: float | None = None
 
 
 @dataclass(frozen=True)
@@ -75,6 +82,8 @@ class AppConfig:
         self.roi.rect.validate("roi")
         for idx, rect in enumerate(self.roi.ignore):
             rect.validate(f"roi.ignore[{idx}]")
+        if self.output.capture_roi is not None:
+            self.output.capture_roi.validate("output.capture_roi")
         if self.video.sample_fps <= 0:
             raise ValueError("video.sample_fps must be positive")
         if self.detection.resize_width < 64:
@@ -102,10 +111,22 @@ class AppConfig:
             raise ValueError("output.format must be pptx, pdf, or both")
         if self.output.image_region not in {"roi", "full"}:
             raise ValueError("output.image_region must be roi or full")
-        if self.output.pdf_transcript_mode not in {"below", "notes-page", "none"}:
+        if self.output.pdf_transcript_mode not in {"side-by-side", "below", "notes-page", "none"}:
             raise ValueError("output.pdf_transcript_mode is invalid")
-        if not 0.05 <= self.output.pdf_transcript_ratio <= 0.60:
-            raise ValueError("output.pdf_transcript_ratio must be within [0.05, 0.60]")
+        if not 0.05 <= self.output.pdf_transcript_ratio <= 0.80:
+            raise ValueError("output.pdf_transcript_ratio must be within [0.05, 0.80]")
+        if self.output.pdf_font_size <= 0 or self.output.pdf_min_font_size <= 0:
+            raise ValueError("PDF font sizes must be positive")
+        if self.output.pdf_min_font_size > self.output.pdf_font_size:
+            raise ValueError("output.pdf_min_font_size must not exceed output.pdf_font_size")
+        if self.output.pdf_margin_pt < 0 or self.output.pdf_gap_pt < 0:
+            raise ValueError("PDF margin and gap must be non-negative")
+        for name, value in (
+            ("output.pdf_page_width_in", self.output.pdf_page_width_in),
+            ("output.pdf_page_height_in", self.output.pdf_page_height_in),
+        ):
+            if value is not None and value <= 0:
+                raise ValueError(f"{name} must be positive")
 
 
 def _mapping(data: Any, key: str) -> dict[str, Any]:
@@ -117,13 +138,27 @@ def _mapping(data: Any, key: str) -> dict[str, Any]:
     return value
 
 
-def _rect_from_roi(data: dict[str, Any]) -> Rect:
+def _rect_from_mapping(data: dict[str, Any]) -> Rect:
     return Rect(
         float(data.get("x", 0.0)),
         float(data.get("y", 0.0)),
         float(data.get("width", 1.0)),
         float(data.get("height", 1.0)),
     )
+
+
+def _optional_rect(value: Any, name: str) -> Rect | None:
+    if value is None:
+        return None
+    if isinstance(value, dict):
+        rect = _rect_from_mapping(value)
+        rect.validate(name)
+        return rect
+    if isinstance(value, (list, tuple)):
+        rect = Rect.from_sequence(value)
+        rect.validate(name)
+        return rect
+    raise ValueError(f"{name} must be x,y,width,height or a mapping")
 
 
 def load_config(path: str | Path | None = None) -> AppConfig:
@@ -139,21 +174,23 @@ def load_config(path: str | Path | None = None) -> AppConfig:
     roi_data = _mapping(data, "roi")
     detection_data = _mapping(data, "detection")
     whisper_data = _mapping(data, "whisper")
-    output_data = _mapping(data, "output")
+    output_data = dict(_mapping(data, "output"))
 
     ignore_items = roi_data.get("ignore", []) or []
     if not isinstance(ignore_items, list):
         raise ValueError("roi.ignore must be a list")
 
+    capture_roi = _optional_rect(output_data.pop("capture_roi", None), "output.capture_roi")
+
     config = AppConfig(
         video=VideoConfig(**video_data),
         roi=RoiConfig(
-            rect=_rect_from_roi(roi_data),
+            rect=_rect_from_mapping(roi_data),
             ignore=tuple(Rect.from_sequence(item) for item in ignore_items),
         ),
         detection=DetectionConfig(**detection_data),
         whisper=WhisperConfig(**whisper_data),
-        output=OutputConfig(**output_data),
+        output=OutputConfig(capture_roi=capture_roi, **output_data),
     )
     config.validate()
     return config
@@ -183,6 +220,21 @@ def apply_overrides(config: AppConfig, **overrides: Any) -> AppConfig:
     for key in ("format", "image_region", "pdf_transcript_mode"):
         if overrides.get(key) is not None:
             output = replace(output, **{key: overrides[key]})
+    if overrides.get("capture_roi") is not None:
+        output = replace(output, capture_roi=Rect.from_sequence(overrides["capture_roi"]))
+    for key in (
+        "pdf_transcript_ratio",
+        "pdf_font_size",
+        "pdf_min_font_size",
+        "pdf_margin_pt",
+        "pdf_gap_pt",
+        "slide_width_in",
+        "slide_height_in",
+        "pdf_page_width_in",
+        "pdf_page_height_in",
+    ):
+        if overrides.get(key) is not None:
+            output = replace(output, **{key: float(overrides[key])})
     if overrides.get("keep_intermediate") is not None:
         output = replace(output, keep_intermediate=bool(overrides["keep_intermediate"]))
 

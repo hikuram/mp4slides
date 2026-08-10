@@ -5,6 +5,10 @@ import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 
+import cv2
+
+from .models import Rect
+
 
 @dataclass(frozen=True)
 class VideoInfo:
@@ -77,3 +81,40 @@ def extract_audio(video_path: str | Path, audio_path: str | Path) -> Path:
     ]
     _run(command)
     return output
+
+
+def crop_frame(frame, rect: Rect):
+    height, width = frame.shape[:2]
+    x1 = max(0, min(width - 1, int(round(rect.x * width))))
+    y1 = max(0, min(height - 1, int(round(rect.y * height))))
+    x2 = max(x1 + 1, min(width, int(round((rect.x + rect.width) * width))))
+    y2 = max(y1 + 1, min(height, int(round((rect.y + rect.height) * height))))
+    return frame[y1:y2, x1:x2]
+
+
+def extract_frame_png(
+    video_path: str | Path,
+    timestamp: float,
+    crop_rect: Rect | None = None,
+    png_compression: int = 3,
+) -> bytes:
+    capture = cv2.VideoCapture(str(video_path))
+    if not capture.isOpened():
+        raise ValueError(f"Unable to open video: {video_path}")
+    try:
+        capture.set(cv2.CAP_PROP_POS_MSEC, max(0.0, float(timestamp)) * 1000.0)
+        ok, frame = capture.read()
+        if not ok:
+            raise ValueError(f"Unable to read frame at {timestamp:.3f}s from {video_path}")
+        if crop_rect is not None:
+            frame = crop_frame(frame, crop_rect)
+        ok, encoded = cv2.imencode(
+            ".png",
+            frame,
+            [cv2.IMWRITE_PNG_COMPRESSION, int(png_compression)],
+        )
+        if not ok:
+            raise ValueError(f"Unable to encode frame at {timestamp:.3f}s")
+        return encoded.tobytes()
+    finally:
+        capture.release()

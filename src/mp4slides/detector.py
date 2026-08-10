@@ -43,7 +43,8 @@ class SlideDetector:
     def _output_frame(self, frame: np.ndarray) -> np.ndarray:
         if self.output_config.image_region == "full":
             return frame
-        return self._crop_rect(frame, self.roi_config.rect)
+        rect = self.output_config.capture_roi or self.roi_config.rect
+        return self._crop_rect(frame, rect)
 
     def _build_mask(self, resized_height: int, resized_width: int) -> np.ndarray:
         shape = (resized_height, resized_width)

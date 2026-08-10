@@ -8,7 +8,10 @@ roi:
   height: 1.0
   ignore: []
 
-# Example ignore rectangles use full-frame normalized coordinates.
+# Analysis ROI and output crop are independent.
+# roi controls slide-change detection.
+# output.capture_roi controls only the image embedded in PPTX/PDF.
+# If capture_roi is null, image_region: roi uses the analysis ROI.
 # roi:
 #   x: 0.05
 #   y: 0.05
@@ -47,10 +50,21 @@ whisper:
 output:
   format: pptx
   image_region: roi
+  capture_roi: null
   keep_intermediate: true
   save_debug_scores: true
   slide_width_in: 13.333333
   slide_height_in: 7.5
-  pdf_transcript_mode: below
-  pdf_transcript_ratio: 0.22
+
+  # PDF defaults to slide image on the left and full transcript on the right.
+  # If the transcript does not fit at pdf_min_font_size, continuation pages
+  # are generated instead of truncating text.
+  pdf_transcript_mode: side-by-side
+  pdf_transcript_ratio: 0.40
   pdf_font_path: null
+  pdf_font_size: 10.0
+  pdf_min_font_size: 8.0
+  pdf_margin_pt: 18.0
+  pdf_gap_pt: 18.0
+  pdf_page_width_in: null
+  pdf_page_height_in: null

@@ -26,8 +26,17 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("input", help="Input MP4 or other FFmpeg-readable video")
     parser.add_argument("--output-dir", default="/output", help="Output directory")
     parser.add_argument("--config", help="YAML configuration file")
+    parser.add_argument(
+        "--reuse-segments",
+        help="Reuse page boundaries, representative times, and transcripts from a previous segments JSON",
+    )
     parser.add_argument("--format", choices=["pptx", "pdf", "both"])
-    parser.add_argument("--roi", type=_rect, help="Normalized x,y,width,height")
+    parser.add_argument("--roi", type=_rect, help="Normalized analysis ROI: x,y,width,height")
+    parser.add_argument(
+        "--capture-roi",
+        type=_rect,
+        help="Normalized output crop ROI; does not affect reused page boundaries",
+    )
     parser.add_argument(
         "--ignore",
         type=_rect,
@@ -46,7 +55,19 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--compute-type")
     parser.add_argument("--skip-transcript", action="store_true")
     parser.add_argument("--image-region", choices=["roi", "full"])
-    parser.add_argument("--pdf-transcript-mode", choices=["below", "notes-page", "none"])
+    parser.add_argument(
+        "--pdf-transcript-mode",
+        choices=["side-by-side", "below", "notes-page", "none"],
+    )
+    parser.add_argument("--pdf-transcript-ratio", type=float)
+    parser.add_argument("--pdf-font-size", type=float)
+    parser.add_argument("--pdf-min-font-size", type=float)
+    parser.add_argument("--pdf-margin-pt", type=float)
+    parser.add_argument("--pdf-gap-pt", type=float)
+    parser.add_argument("--pdf-page-width-in", type=float)
+    parser.add_argument("--pdf-page-height-in", type=float)
+    parser.add_argument("--slide-width-in", type=float)
+    parser.add_argument("--slide-height-in", type=float)
     parser.add_argument(
         "--keep-intermediate",
         action=argparse.BooleanOptionalAction,
@@ -68,6 +89,7 @@ def main() -> None:
         config,
         format=args.format,
         roi=args.roi,
+        capture_roi=args.capture_roi,
         ignore=args.ignore,
         sample_fps=args.sample_fps,
         stable_seconds=args.stable_seconds,
@@ -82,9 +104,23 @@ def main() -> None:
         skip_transcript=args.skip_transcript,
         image_region=args.image_region,
         pdf_transcript_mode=args.pdf_transcript_mode,
+        pdf_transcript_ratio=args.pdf_transcript_ratio,
+        pdf_font_size=args.pdf_font_size,
+        pdf_min_font_size=args.pdf_min_font_size,
+        pdf_margin_pt=args.pdf_margin_pt,
+        pdf_gap_pt=args.pdf_gap_pt,
+        pdf_page_width_in=args.pdf_page_width_in,
+        pdf_page_height_in=args.pdf_page_height_in,
+        slide_width_in=args.slide_width_in,
+        slide_height_in=args.slide_height_in,
         keep_intermediate=args.keep_intermediate,
     )
-    artifacts = run_pipeline(Path(args.input), Path(args.output_dir), config)
+    artifacts = run_pipeline(
+        Path(args.input),
+        Path(args.output_dir),
+        config,
+        reuse_segments=args.reuse_segments,
+    )
     for name, path in artifacts.items():
         print(f"{name}: {path}")
 
