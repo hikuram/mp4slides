@@ -60,6 +60,11 @@ output:
   # If the transcript does not fit at pdf_min_font_size, continuation pages
   # are generated instead of truncating text.
   pdf_transcript_mode: side-by-side
+  # preserve: keep line breaks, space: replace each line break with a space,
+  # paragraph: replace single line breaks with spaces and keep blank lines.
+  pdf_transcript_newline_mode: space
+  # PPTX speaker notes keep the original transcript line breaks by default.
+  pptx_notes_newline_mode: preserve
   pdf_transcript_ratio: 0.40
   pdf_font_path: null
   pdf_font_size: 10.0

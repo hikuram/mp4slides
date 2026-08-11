@@ -59,6 +59,16 @@ def build_parser() -> argparse.ArgumentParser:
         "--pdf-transcript-mode",
         choices=["side-by-side", "below", "notes-page", "none"],
     )
+    parser.add_argument(
+        "--pdf-transcript-newline-mode",
+        choices=["preserve", "space", "paragraph"],
+        help="How transcript newlines are rendered in PDF output",
+    )
+    parser.add_argument(
+        "--pptx-notes-newline-mode",
+        choices=["preserve", "space", "paragraph"],
+        help="How transcript newlines are rendered in PPTX speaker notes",
+    )
     parser.add_argument("--pdf-transcript-ratio", type=float)
     parser.add_argument("--pdf-font-size", type=float)
     parser.add_argument("--pdf-min-font-size", type=float)
@@ -104,6 +114,8 @@ def main() -> None:
         skip_transcript=args.skip_transcript,
         image_region=args.image_region,
         pdf_transcript_mode=args.pdf_transcript_mode,
+        pdf_transcript_newline_mode=args.pdf_transcript_newline_mode,
+        pptx_notes_newline_mode=args.pptx_notes_newline_mode,
         pdf_transcript_ratio=args.pdf_transcript_ratio,
         pdf_font_size=args.pdf_font_size,
         pdf_min_font_size=args.pdf_min_font_size,

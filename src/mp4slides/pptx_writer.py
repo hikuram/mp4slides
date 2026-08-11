@@ -7,6 +7,7 @@ from pptx.util import Inches
 
 from .config import OutputConfig
 from .models import DetectedSlide
+from .text import normalize_transcript_text
 
 
 def _fit_size(image_width: int, image_height: int, box_width: int, box_height: int) -> tuple[int, int]:
@@ -45,10 +46,11 @@ def write_pptx(slides: list[DetectedSlide], output_path: str | Path, config: Out
         slide.shapes.add_picture(item.image_path, left, top, width=fit_width, height=fit_height)
         notes = slide.notes_slide.notes_text_frame
         if notes is not None:
-            notes.text = (
-                f"[{item.start:.3f} - {item.end:.3f}]\n"
-                f"{item.transcript}".rstrip()
-            )
+            transcript = normalize_transcript_text(
+                item.transcript,
+                config.pptx_notes_newline_mode,
+            ).rstrip()
+            notes.text = f"[{item.start:.3f} - {item.end:.3f}]\n{transcript}"
 
     presentation.save(target)
     return target

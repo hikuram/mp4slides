@@ -8,6 +8,8 @@ def test_default_config_is_valid() -> None:
     assert config.video.sample_fps == 3.0
     assert config.whisper.language == "ja"
     assert config.output.pdf_transcript_mode == "side-by-side"
+    assert config.output.pdf_transcript_newline_mode == "space"
+    assert config.output.pptx_notes_newline_mode == "preserve"
     assert config.output.pdf_transcript_ratio == 0.40
 
 
@@ -32,3 +34,16 @@ def test_capture_roi_from_yaml(tmp_path: Path) -> None:
     assert config.output.capture_roi is not None
     assert config.output.capture_roi.x == 0.1
     assert config.output.capture_roi.height == 0.6
+
+
+def test_transcript_newline_modes_from_yaml(tmp_path: Path) -> None:
+    path = tmp_path / "config.yaml"
+    path.write_text(
+        "output:\n"
+        "  pdf_transcript_newline_mode: paragraph\n"
+        "  pptx_notes_newline_mode: space\n",
+        encoding="utf-8",
+    )
+    config = load_config(path)
+    assert config.output.pdf_transcript_newline_mode == "paragraph"
+    assert config.output.pptx_notes_newline_mode == "space"

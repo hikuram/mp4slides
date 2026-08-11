@@ -60,6 +60,8 @@ class OutputConfig:
     slide_width_in: float = 13.333333
     slide_height_in: float = 7.5
     pdf_transcript_mode: str = "side-by-side"
+    pdf_transcript_newline_mode: str = "space"
+    pptx_notes_newline_mode: str = "preserve"
     pdf_transcript_ratio: float = 0.40
     pdf_font_path: str | None = None
     pdf_font_size: float = 10.0
@@ -113,6 +115,11 @@ class AppConfig:
             raise ValueError("output.image_region must be roi or full")
         if self.output.pdf_transcript_mode not in {"side-by-side", "below", "notes-page", "none"}:
             raise ValueError("output.pdf_transcript_mode is invalid")
+        newline_modes = {"preserve", "space", "paragraph"}
+        if self.output.pdf_transcript_newline_mode not in newline_modes:
+            raise ValueError("output.pdf_transcript_newline_mode is invalid")
+        if self.output.pptx_notes_newline_mode not in newline_modes:
+            raise ValueError("output.pptx_notes_newline_mode is invalid")
         if not 0.05 <= self.output.pdf_transcript_ratio <= 0.80:
             raise ValueError("output.pdf_transcript_ratio must be within [0.05, 0.80]")
         if self.output.pdf_font_size <= 0 or self.output.pdf_min_font_size <= 0:
@@ -217,7 +224,13 @@ def apply_overrides(config: AppConfig, **overrides: Any) -> AppConfig:
             whisper = replace(whisper, **{key: overrides[key]})
     if overrides.get("skip_transcript"):
         whisper = replace(whisper, enabled=False)
-    for key in ("format", "image_region", "pdf_transcript_mode"):
+    for key in (
+        "format",
+        "image_region",
+        "pdf_transcript_mode",
+        "pdf_transcript_newline_mode",
+        "pptx_notes_newline_mode",
+    ):
         if overrides.get(key) is not None:
             output = replace(output, **{key: overrides[key]})
     if overrides.get("capture_roi") is not None:

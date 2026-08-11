@@ -10,6 +10,7 @@ from reportlab.pdfgen import canvas
 
 from .config import OutputConfig
 from .models import DetectedSlide
+from .text import normalize_transcript_text
 
 
 def _register_font(config: OutputConfig) -> str:
@@ -143,7 +144,7 @@ def _write_side_by_side_page(
     header_height = header_leading * 1.8
     text_height = max(1.0, content_height - header_height)
     font_size, leading, text_pages = _fit_or_paginate_text(
-        item.transcript,
+        normalize_transcript_text(item.transcript, config.pdf_transcript_newline_mode),
         font_name,
         config.pdf_font_size,
         config.pdf_min_font_size,
@@ -186,7 +187,7 @@ def _write_below_page(
     _draw_fitted_image(pdf, item.image_path or "", margin, margin + transcript_height, image_box_width, image_box_height)
 
     font_size, leading, pages = _fit_or_paginate_text(
-        item.transcript,
+        normalize_transcript_text(item.transcript, config.pdf_transcript_newline_mode),
         font_name,
         config.pdf_font_size,
         config.pdf_min_font_size,
@@ -217,7 +218,7 @@ def _write_notes_page(
     header_leading = header_size * 1.4
     text_height = page_height - 2 * margin - header_leading * 2
     font_size, leading, pages = _fit_or_paginate_text(
-        item.transcript,
+        normalize_transcript_text(item.transcript, config.pdf_transcript_newline_mode),
         font_name,
         config.pdf_font_size,
         config.pdf_min_font_size,

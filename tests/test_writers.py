@@ -39,6 +39,20 @@ def test_pptx_contains_notes(tmp_path: Path) -> None:
     assert slide.transcript in notes
 
 
+def test_pptx_notes_can_replace_newlines_with_spaces(tmp_path: Path) -> None:
+    image_path = tmp_path / "slide.png"
+    make_image(image_path)
+    output = tmp_path / "out.pptx"
+    slide = make_slide(image_path)
+    slide.transcript = "first line\nsecond line"
+    config = OutputConfig(format="pptx", pptx_notes_newline_mode="space")
+    write_pptx([slide], output, config)
+    presentation = Presentation(output)
+    notes = presentation.slides[0].notes_slide.notes_text_frame.text
+    assert "first line second line" in notes
+    assert "first line\nsecond line" not in notes
+
+
 def test_pdf_writes_japanese_transcript(tmp_path: Path) -> None:
     image_path = tmp_path / "slide.png"
     make_image(image_path)

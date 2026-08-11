@@ -122,16 +122,25 @@ PPTXから変換せず、ReportLabで直接生成します。既定は`side-by-s
 
 右欄に入り切らない場合は、まず`pdf_min_font_size`まで自動縮小し、それでも入り切らなければ同じスライド画像を左に再掲した継続ページを生成します。文字起こしは省略しません。
 
+PDFでは文字起こし中の改行をレンダリング時だけ正規化できます。`segments.json`の元テキストは変更しません。
+
+- `space`: 各改行を単純なスペースへ置換（PDF既定）
+- `preserve`: 改行をそのまま保持
+- `paragraph`: 単一改行はスペース化し、空行による段落区切りは保持
+
+PPTX Speaker Notesは既定で`preserve`です。必要ならPDFとは独立して変更できます。
+
 ```bash
 mp4slides /input/presentation.mp4 \
   --format pdf \
   --pdf-transcript-mode side-by-side \
+  --pdf-transcript-newline-mode space \
   --pdf-transcript-ratio 0.42 \
   --pdf-font-size 10 \
   --pdf-min-font-size 8
 ```
 
-`pdf_transcript_ratio`は`side-by-side`では右側文字起こし欄の幅比率です。`pdf_margin_pt`、`pdf_gap_pt`、`pdf_page_width_in`、`pdf_page_height_in`もYAMLまたはCLIから調整できます。
+PPTXノートもスペース化する場合は`--pptx-notes-newline-mode space`を指定します。`pdf_transcript_ratio`は`side-by-side`では右側文字起こし欄の幅比率です。`pdf_margin_pt`、`pdf_gap_pt`、`pdf_page_width_in`、`pdf_page_height_in`もYAMLまたはCLIから調整できます。
 
 日本語PDFはReportLabの日本語CIDフォントを既定で使用します。TrueTypeフォントを埋め込みたい場合は`output.pdf_font_path`でTTFファイルを指定できます。
 
@@ -147,6 +156,7 @@ mp4slides /input/presentation.mp4 \
   --capture-roi 0.04,0.06,0.92,0.86 \
   --format both \
   --pdf-transcript-mode side-by-side \
+  --pdf-transcript-newline-mode space \
   --pdf-transcript-ratio 0.45
 ```
 
@@ -163,6 +173,8 @@ mp4slides /input/presentation.mp4 \
 - `--image-region`: ROI画像か全画面か
 - PPTX/PDFの出力有無
 - PDFの左右比率、フォントサイズ、余白、カラム間隔、ページサイズ
+- PDF文字起こしの改行処理 (`preserve` / `space` / `paragraph`)
+- PPTXノートの改行処理 (`preserve` / `space` / `paragraph`)
 - PPTXのスライドサイズ
 
 `segments.json`自体をテキストエディタで修正してから再利用することもできます。例えば誤検出した境界を直したり、`representative_time`を変更して別のフレームを採用したり、文字起こしを校正した後、その内容を固定したまま再レンダリングできます。
