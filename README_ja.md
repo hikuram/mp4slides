@@ -1,5 +1,7 @@
 # mp4slides
 
+[English](README.md) | 日本語
+
 プレゼン動画から、スライド画像・日本語文字起こし・PPTX/PDFを生成するDocker向けCLIです。
 
 主な構成は以下です。
@@ -85,7 +87,7 @@ mp4slides /input/presentation.mp4 \
 
 ## 出力
 
-入力が`presentation.mp4`の場合、標準では次を生成します。
+入力が`presentation.mp4`で`--format both`を指定した場合、次を生成します。
 
 ```text
 /output/
