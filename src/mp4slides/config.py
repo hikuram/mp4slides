@@ -230,6 +230,7 @@ def apply_overrides(config: AppConfig, **overrides: Any) -> AppConfig:
         "pdf_transcript_mode",
         "pdf_transcript_newline_mode",
         "pptx_notes_newline_mode",
+        "pdf_font_path",
     ):
         if overrides.get(key) is not None:
             output = replace(output, **{key: overrides[key]})

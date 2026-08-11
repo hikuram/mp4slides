@@ -1,3 +1,6 @@
+# Reference configuration. Every value below matches the built-in default.
+# CLI options override values loaded from this file.
+
 video:
   sample_fps: 3.0
 
@@ -8,10 +11,7 @@ roi:
   height: 1.0
   ignore: []
 
-# Analysis ROI and output crop are independent.
-# roi controls slide-change detection.
-# output.capture_roi controls only the image embedded in PPTX/PDF.
-# If capture_roi is null, image_region: roi uses the analysis ROI.
+# Example ignore rectangles use full-frame normalized coordinates.
 # roi:
 #   x: 0.05
 #   y: 0.05
@@ -56,16 +56,11 @@ output:
   slide_width_in: 13.333333
   slide_height_in: 7.5
 
-  # PDF defaults to slide image on the left and full transcript on the right.
-  # If the transcript does not fit at pdf_min_font_size, continuation pages
-  # are generated instead of truncating text.
   pdf_transcript_mode: side-by-side
-  # preserve: keep line breaks, space: replace each line break with a space,
-  # paragraph: replace single line breaks with spaces and keep blank lines.
   pdf_transcript_newline_mode: space
-  # PPTX speaker notes keep the original transcript line breaks by default.
   pptx_notes_newline_mode: preserve
   pdf_transcript_ratio: 0.40
+
   pdf_font_path: null
   pdf_font_size: 10.0
   pdf_min_font_size: 8.0

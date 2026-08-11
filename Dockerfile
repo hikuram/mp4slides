@@ -18,7 +18,7 @@ RUN apt-get update && \
 
 WORKDIR /app
 
-COPY requirements.txt pyproject.toml README.md LICENSE THIRD_PARTY_NOTICES.md ./
+COPY requirements.txt pyproject.toml ./
 RUN python3 -m pip install --no-cache-dir --upgrade pip setuptools wheel && \
     python3 -m pip install --no-cache-dir -r requirements.txt
 

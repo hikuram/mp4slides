@@ -81,6 +81,7 @@ mp4slides /input/presentation.mp4 \
 ```
 
 `config.example.yaml`をコピーして使えます。CLIで指定した項目はYAMLを上書きします。
+`config.example.yaml`はコード内デフォルトを全項目明示したreference configで、pytestでデフォルト値との一致と項目漏れを検証しています。
 
 ## 出力
 
@@ -142,7 +143,15 @@ mp4slides /input/presentation.mp4 \
 
 PPTXノートもスペース化する場合は`--pptx-notes-newline-mode space`を指定します。`pdf_transcript_ratio`は`side-by-side`では右側文字起こし欄の幅比率です。`pdf_margin_pt`、`pdf_gap_pt`、`pdf_page_width_in`、`pdf_page_height_in`もYAMLまたはCLIから調整できます。
 
-日本語PDFはReportLabの日本語CIDフォントを既定で使用します。TrueTypeフォントを埋め込みたい場合は`output.pdf_font_path`でTTFファイルを指定できます。
+日本語PDFはReportLabの日本語CIDフォントを既定で使用します。TrueTypeフォントを埋め込みたい場合は`output.pdf_font_path`または`--pdf-font-path`でTTFファイルを指定できます。
+
+```bash
+mp4slides /input/presentation.mp4 \
+  --format pdf \
+  --pdf-font-path /fonts/NotoSansJP-Regular.ttf
+```
+
+Docker内で指定する場合は、フォントファイルをvolumeでマウントし、コンテナ内のパスを指定してください。
 
 ## 再実行: ページ分けと文字起こしを保持して見た目だけ変更
 

@@ -47,3 +47,48 @@ def test_transcript_newline_modes_from_yaml(tmp_path: Path) -> None:
     config = load_config(path)
     assert config.output.pdf_transcript_newline_mode == "paragraph"
     assert config.output.pptx_notes_newline_mode == "space"
+
+
+def test_example_config_matches_built_in_defaults() -> None:
+    example = Path(__file__).resolve().parents[1] / "config.example.yaml"
+    assert load_config(example) == load_config()
+
+
+def test_example_config_explicitly_lists_all_default_fields() -> None:
+    from dataclasses import fields
+
+    import yaml
+
+    from mp4slides.config import DetectionConfig, OutputConfig, VideoConfig, WhisperConfig
+
+    example = Path(__file__).resolve().parents[1] / "config.example.yaml"
+    data = yaml.safe_load(example.read_text(encoding="utf-8"))
+
+    assert set(data) == {"video", "roi", "detection", "whisper", "output"}
+    assert set(data["video"]) == {field.name for field in fields(VideoConfig)}
+    assert set(data["roi"]) == {"x", "y", "width", "height", "ignore"}
+    assert set(data["detection"]) == {field.name for field in fields(DetectionConfig)}
+    assert set(data["whisper"]) == {field.name for field in fields(WhisperConfig)}
+    assert set(data["output"]) == {field.name for field in fields(OutputConfig)}
+
+
+def test_pdf_font_path_cli_override() -> None:
+    from mp4slides.cli import build_parser
+    from mp4slides.config import apply_overrides
+
+    parser = build_parser()
+    args = parser.parse_args(["input.mp4", "--pdf-font-path", "/fonts/custom.ttf"])
+    config = apply_overrides(load_config(), pdf_font_path=args.pdf_font_path)
+    assert config.output.pdf_font_path == "/fonts/custom.ttf"
+
+
+def test_pdf_font_path_cli_overrides_yaml(tmp_path: Path) -> None:
+    from mp4slides.cli import build_parser
+    from mp4slides.config import apply_overrides
+
+    path = tmp_path / "config.yaml"
+    path.write_text("output:\n  pdf_font_path: /fonts/yaml.ttf\n", encoding="utf-8")
+    parser = build_parser()
+    args = parser.parse_args(["input.mp4", "--pdf-font-path", "/fonts/cli.ttf"])
+    config = apply_overrides(load_config(path), pdf_font_path=args.pdf_font_path)
+    assert config.output.pdf_font_path == "/fonts/cli.ttf"

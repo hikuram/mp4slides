@@ -70,6 +70,10 @@ def build_parser() -> argparse.ArgumentParser:
         help="How transcript newlines are rendered in PPTX speaker notes",
     )
     parser.add_argument("--pdf-transcript-ratio", type=float)
+    parser.add_argument(
+        "--pdf-font-path",
+        help="Path to a TrueType font used for embedded PDF text",
+    )
     parser.add_argument("--pdf-font-size", type=float)
     parser.add_argument("--pdf-min-font-size", type=float)
     parser.add_argument("--pdf-margin-pt", type=float)
@@ -117,6 +121,7 @@ def main() -> None:
         pdf_transcript_newline_mode=args.pdf_transcript_newline_mode,
         pptx_notes_newline_mode=args.pptx_notes_newline_mode,
         pdf_transcript_ratio=args.pdf_transcript_ratio,
+        pdf_font_path=args.pdf_font_path,
         pdf_font_size=args.pdf_font_size,
         pdf_min_font_size=args.pdf_min_font_size,
         pdf_margin_pt=args.pdf_margin_pt,
